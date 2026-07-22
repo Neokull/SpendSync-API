@@ -1,0 +1,36 @@
+services:
+  server-php-spendsync:
+    container_name: spendsync-php
+    build:
+      dockerfile: ./Dockerfile
+      context: .
+    restart: unless-stopped
+    stdin_open: true
+    links:
+      - mariadb-server-spendsync
+    ports:
+      - "8015:80"
+    volumes:
+      - ./:/var/www/html:delegated
+    networks:
+      - project_network
+
+  mariadb-server-spendsync:
+    container_name: spendsync-db
+    image: mariadb
+    ports:
+      - "3315:3306"
+    restart: unless-stopped
+    environment:
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - db_mysql:/var/lib/mysql
+    networks:
+      - project_network
+
+volumes:
+  db_mysql:
+
+networks:
+  project_network:
