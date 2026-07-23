@@ -18,10 +18,33 @@ final class TransactionController extends AbstractController
 {
 
     #[Route('', name: 'list', methods: ['GET'])]
-    public function index(EntityManagerInterface $em): JsonResponse
+    public function index(Request $request, EntityManagerInterface $em): JsonResponse
     {
-        $allTransactions = $em->getRepository(Transaction::class)->findAll();
-        return $this->json($allTransactions, 200, [], ['groups' => 'transaction:read']);
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 10);
+
+        $offset = ($page - 1) * $limit;
+        $repository = $em->getRepository(Transaction::class);
+
+        $transactions = $repository->findBy(
+            [],
+            ['date' => 'DESC'],
+            $limit,
+            $offset
+        );
+
+        $totalItems = $repository->count([]);
+        $totalPages = ceil($totalItems / $limit);
+
+        return $this->json([
+           'data' => $transactions,
+           'meta' => [
+               'totalItems' => $totalItems,
+               'currentPage' => $page,
+               'itemsPerPage' => $limit,
+               'totalPages' => $totalPages,
+           ]
+        ], 200, [], ['groups' => ['transaction:read']]);
     }
 
     #[Route('/{id}', name: 'api_transaction_show', methods: ['GET'])]
