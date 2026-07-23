@@ -21,18 +21,7 @@ final class TransactionController extends AbstractController
     public function index(EntityManagerInterface $em): JsonResponse
     {
         $allTransactions = $em->getRepository(Transaction::class)->findAll();
-        $result = [];
-        foreach ($allTransactions as $transaction) {
-            $result[] = [
-              'amount' => $transaction->getAmount(),
-                'description' => $transaction->getDescription(),
-                'date' => $transaction->getDate() ? $transaction->getDate()->format('Y-m-d') : null,
-                'category' => $transaction->getCategory() ? $transaction->getCategory()->getName() : null,
-                'person' => $transaction->getPerson() ? $transaction->getPerson()->getName() : null,
-            ];
-        }
-
-        return new JsonResponse($result, 200);
+        return $this->json($allTransactions, 200, [], ['groups' => 'transaction:read']);
     }
 
     #[Route('/{id}', name: 'api_transaction_show', methods: ['GET'])]
@@ -46,16 +35,7 @@ final class TransactionController extends AbstractController
         if(!$transaction) {
             return new JsonResponse(['error' => 'Transaction not found'], 404);
         }
-
-        $data = [
-            'amount' => $transaction->getAmount(),
-            'description' => $transaction->getDescription(),
-            'date' => $transaction->getDate() ? $transaction->getDate()->format('Y-m-d') : null,
-            'category' => $transaction->getCategory() ? $transaction->getCategory()->getName() : null,
-            'person' => $transaction->getPerson() ? $transaction->getPerson()->getName() : null,
-        ];
-
-        return new JsonResponse($data, 200);
+        return $this->json($transaction, 200, [], ['groups' => 'transaction:read']);
     }
 
     #[Route('/new', name: 'api_transaction_create', methods: ['POST'])]
